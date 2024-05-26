@@ -7,7 +7,7 @@ def get_random_car(
     min_x: int,
     max_x: int,
     min_y: int,
-    max_y: min,
+    max_y: int,
     v_min: int,
     v_max: int,
     negative_probability: int = 50,
@@ -21,8 +21,8 @@ def get_random_car(
     start_vec = Vector((x_pos, y_pos))
 
     # Speed
-    v_x = randrange(min_x, max_x, 1) * sign_x
-    v_y = randrange(min_y, max_y, 1) * sign_y
+    v_x = randrange(v_min, v_max, 1) * sign_x
+    v_y = randrange(v_min, v_max, 1) * sign_y
 
     v_vec = Vector((v_x, v_y))
 
