@@ -11,7 +11,7 @@ def main(
     min_y: int,
     max_y: int,
     v_max: int,
-    num_sampels: int,
+    num_sampeles: int,
     sensor_time: float,
     save_path: str,
     num_sensor_measurements: int = 3,
@@ -21,7 +21,7 @@ def main(
 ):
     sensors = get_sensor_lines(3, 90, 0, 0)
 
-    for _ in range(num_sampels):
+    for _ in range(num_sampeles):
         first_car = Line(Vector((0, 0)), Vector((0, first_car_speed)))
 
         second_car = get_random_car(
@@ -50,7 +50,7 @@ def main(
                 else:
                     break
 
-            # TODO: save measurments
+            # TODO: save measurements
 
         t_first, t_second = intersect_2D(first_car, second_car)
         t_half_first = hit_box / abs(first_car.v)
@@ -59,4 +59,4 @@ def main(
             t_first + t_half_first, t_second + t_half_second
         )
 
-        # TODO: save all measurments and collision
+        # TODO: save all measurements and collision
