@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.vectorlib.vector import Vector, angel
+from src.vectorlib.vector import Vector, angle
 
 
 class TestVector(TestCase):
@@ -66,9 +66,9 @@ class TestVector(TestCase):
             "TypeError not raised: division between Vector and number",
         )
 
-    def test_angel(self):
+    def test_angle(self):
         self.assertEqual(
             90.0,
-            angel(Vector((1, 0)), Vector((0, 1))),
+            angle(Vector((1, 0)), Vector((0, 1))),
         )
-        self.assertEqual(45.0, angel(Vector((0, 1)), Vector((1, 1))))
+        self.assertEqual(45.0, angle(Vector((0, 1)), Vector((1, 1))))
