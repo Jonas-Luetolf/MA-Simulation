@@ -14,6 +14,14 @@ class Line:
         return self.v * t + self.a
 
 
+def get_normal_2D(g: Line):
+    assert isinstance(g, Line)
+    assert len(g.v.components) == 2
+    v = list(reversed(g.v.components))
+    v[0] = v[0] * -1
+    return Line(g.a, Vector(v))
+
+
 def intersect_2D(g: Line, h: Line):
     assert isinstance(g, Line)
     assert isinstance(h, Line)

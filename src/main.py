@@ -1,8 +1,8 @@
 from src.car import get_random_car
 from src.sensors import get_sensor_lines
 
-from src.vectorlib.vector import Vector, angle
-from src.vectorlib.line import Line, intersect_2D
+from src.vectorlib.vector import Vector, angle, vector_to_len
+from src.vectorlib.line import Line, get_normal_2D, intersect_2D
 
 import os
 import pandas as pd
@@ -19,64 +19,87 @@ def main(
     sensor_time: float,
     save_path: str,
     num_sensor_measurements: int = 3,
-    negative_probability: int = 25,
+    negative_probability: int = 10,
     first_car_speed: int = 10,
-    hit_box: int = 7,
-    sensor_angle: int = 3,
+    hit_box_horizontal: int = 7,
+    hit_box_vertical: int = 2,
+    sensor_angle: int = 1,
 ):
     num_sensors = 90 // sensor_angle
     first_car = Line(Vector((0, 0)), Vector((0, first_car_speed)))
-
     for _ in range(num_sampeles):
         second_car = get_random_car(
             min_x, max_x, min_y, max_y, v_min, v_max, negative_probability
         )
 
         data = {}
-
         for t in [sensor_time * n for n in range(num_sensor_measurements)]:
-            pos_angle = angle(Vector((1, 0)), second_car.getPoint(t))
+            pos_angle = angle(
+                Vector((1, 0)), second_car.getPoint(t) - first_car.getPoint(t)
+            )
+
+            # calculate front and back line
             sensors = get_sensor_lines(
-                sensor_angle, 90, *(first_car.getPoint(t).components)
+                sensor_angle, 90, *first_car.getPoint(t).components
+            )
+            front_line = get_normal_2D(second_car)
+            front_line.a = second_car.getPoint(t) + vector_to_len(
+                second_car.v, hit_box_horizontal
+            )
+
+            back_line = get_normal_2D(second_car)
+            back_line.a = second_car.getPoint(t) - vector_to_len(
+                second_car.v, hit_box_horizontal
             )
 
             start_sensor = int(pos_angle // sensor_angle)
-            curr_sensor = start_sensor
             measurements = [float("inf")] * (num_sensors)
+            hits = [0, 0, 0]
+            distances = [float("inf")] * 3
+            hits_n = 0
+            sensors_ordered = [start_sensor]
+            i = 1
+            while (start_sensor - i) >= 0 or start_sensor + i < num_sensors:
+                if start_sensor - i >= 0:
+                    sensors_ordered.append(start_sensor - i)
 
-            while curr_sensor > 0:
+                if start_sensor + i < num_sensors:
+                    sensors_ordered.append(start_sensor + i)
+                i += 1
+
+            not_detect_last = 0
+
+            for sensor in sensors_ordered:
                 try:
-                    sensor_t, car_t = intersect_2D(sensors[curr_sensor], second_car)
+                    distances[0], front_t = intersect_2D(sensors[sensor], front_line)
+                    distances[1], back_t = intersect_2D(sensors[sensor], back_line)
+                    distances[2], second_car_t = intersect_2D(
+                        sensors[sensor], second_car
+                    )
 
                 except ZeroDivisionError:
-                    curr_sensor -= 1
                     continue
 
-                if abs(car_t * abs(second_car.v) - t * abs(second_car.v)) <= hit_box:
-                    measurements[curr_sensor] = sensor_t
+                hits[0] = abs(front_t * abs(front_line.v)) <= hit_box_vertical
+                hits[1] = abs(back_t * abs(back_line.v)) <= hit_box_vertical
+                hits[2] = (
+                    abs(second_car_t * abs(second_car.v) - t * abs(second_car.v))
+                    <= hit_box_horizontal
+                )
 
+                hits_n += sum(hits)
+                if sum(hits):
+                    not_detect_last = 0
+                    for i, h in enumerate(hits):
+                        if h and distances[i] < measurements[sensor]:
+                            measurements[sensor] = distances[i]
+                            break
                 else:
-                    break
+                    if not_detect_last > 3:
+                        break
 
-                curr_sensor -= 1
-
-            curr_sensor = start_sensor + 1
-
-            while curr_sensor < (num_sensors) - 1:
-                try:
-                    sensor_t, car_t = intersect_2D(sensors[curr_sensor], second_car)
-
-                except ZeroDivisionError:
-                    curr_sensor += 1
-                    continue
-
-                if abs(car_t * abs(second_car.v) - t * abs(second_car.v)) <= hit_box:
-                    measurements[curr_sensor] = sensor_t
-
-                else:
-                    break
-
-                curr_sensor += 1
+                    else:
+                        not_detect_last += 1
 
             data.update(
                 {
@@ -85,13 +108,30 @@ def main(
                 }
             )
 
+        second_car_normal = get_normal_2D(second_car)
+
+        # calculate top and bottom line of car
+        border_line_vector = vector_to_len(second_car_normal.v, hit_box_vertical)
+
+        top_second_car = second_car
+        top_second_car.a = top_second_car.a + border_line_vector
+
+        bottom_second_car = second_car
+        bottom_second_car.a = top_second_car.a - border_line_vector
+
+        collision = False
+
         try:
-            t_first, t_second = intersect_2D(first_car, second_car)
-            t_half_first = hit_box / abs(first_car.v)
-            t_half_second = hit_box / abs(second_car.v)
-            collision = max(t_first - t_half_first, t_second - t_half_second) <= min(
-                t_first + t_half_first, t_second + t_half_second
-            )
+            for second_line in [second_car, top_second_car, bottom_second_car]:
+                t_first, t_second = intersect_2D(first_car, second_line)
+
+                t_half_first = hit_box_horizontal / abs(first_car.v)
+                t_half_second = hit_box_horizontal / abs(second_line.v)
+                collision = max(
+                    t_first - t_half_first, t_second - t_half_second
+                ) <= min(t_first + t_half_first, t_second + t_half_second)
+                if collision:
+                    break
 
         except ZeroDivisionError:
             collision = False

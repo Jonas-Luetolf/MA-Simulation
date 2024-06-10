@@ -12,8 +12,8 @@ def get_random_car(
     v_max: int,
     negative_probability: int = 50,
 ):
-    sign_x = (randrange(100) > negative_probability) * (-1)
-    sign_y = (randrange(100) > negative_probability) * (-1)
+    sign_x = -1 if (randrange(1, 100, 1) > negative_probability) else 1
+    sign_y = -1 if (randrange(1, 100, 1) > negative_probability) else 1
 
     # Position
     x_pos = randrange(min_x, max_x, 1)
@@ -23,7 +23,6 @@ def get_random_car(
     # Speed
     v_x = randrange(v_min, v_max, 1) * sign_x
     v_y = randrange(v_min, v_max, 1) * sign_y
-
     v_vec = Vector((v_x, v_y))
 
     return Line(start_vec, v_vec)

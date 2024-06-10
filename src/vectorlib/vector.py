@@ -66,6 +66,10 @@ class Vector:
         return self.__mul__(1 / other)
 
 
+def vector_to_len(v: Vector, l: float):
+    return (v / abs(v)) * l
+
+
 def angle(x: Vector, y: Vector, deg: bool = True) -> float:
     if not isinstance(x, Vector) or not isinstance(y, Vector):
         raise TypeError("angle only supported between Vector and Vector")
