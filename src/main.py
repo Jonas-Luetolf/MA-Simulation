@@ -117,21 +117,32 @@ def main(
         top_second_car.a = top_second_car.a + border_line_vector
 
         bottom_second_car = second_car
-        bottom_second_car.a = top_second_car.a - border_line_vector
+        bottom_second_car.a = bottom_second_car.a - border_line_vector
+
+        first_car_normal = get_normal_2D(first_car)
+        border_line_vector_first = vector_to_len(first_car_normal.v, hit_box_vertical)
+
+        top_first_car = first_car
+        top_first_car.a = top_first_car.a + border_line_vector_first
+
+        bottom_first_car = first_car
+        bottom_first_car.a = bottom_first_car.a - border_line_vector_first
 
         collision = False
 
         try:
             for second_line in [second_car, top_second_car, bottom_second_car]:
-                t_first, t_second = intersect_2D(first_car, second_line)
+                for first_line in [first_car, top_first_car, bottom_first_car]:
+                    t_first, t_second = intersect_2D(first_line, second_line)
 
-                t_half_first = hit_box_horizontal / abs(first_car.v)
-                t_half_second = hit_box_horizontal / abs(second_line.v)
-                collision = max(
-                    t_first - t_half_first, t_second - t_half_second
-                ) <= min(t_first + t_half_first, t_second + t_half_second)
-                if collision:
-                    break
+                    t_half_first = hit_box_horizontal / abs(first_line.v)
+                    t_half_second = hit_box_horizontal / abs(second_line.v)
+                    collision = max(
+                        t_first - t_half_first, t_second - t_half_second
+                        ) <= min(t_first + t_half_first, t_second + t_half_second)
+
+                    if collision:
+                        break
 
         except ZeroDivisionError:
             collision = False
