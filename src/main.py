@@ -21,13 +21,15 @@ def main(
     num_sensor_measurements: int = 3,
     negative_probability: int = 10,
     first_car_speed: int = 10,
-    hit_box_horizontal: int = 7,
-    hit_box_vertical: int = 2,
+    hit_box_horizontal: int = 5,
+    hit_box_vertical: int = 3,
     sensor_angle: int = 1,
 ):
     num_sensors = 90 // sensor_angle
     first_car = Line(Vector((0, 0)), Vector((0, first_car_speed)))
     for _ in range(num_sampeles):
+        if _ % 1000:
+            print(_)
         second_car = get_random_car(
             min_x, max_x, min_y, max_y, v_min, v_max, negative_probability
         )
